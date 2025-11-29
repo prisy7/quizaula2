@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz de Hardware - SYSTA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .bounce-animate { animation: bounce 2s infinite; }
+        .scale-in { animation: scaleIn 0.3s ease-out; }
+        .hover-scale:hover { transform: scale(1.02); }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
+    <div id="app" class="min-h-screen flex items-center justify-center p-4"></div>
+
+    <script>
+        // Ícones SVG
+        const icons = {
+            trophy: `<svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
+            award: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>`,
+            zap: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+            target: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
+            rotate: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path></svg>`,
+            check: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+            x: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
+            star: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`
+        };
+
+        // Estado do jogo
+        let gameState = {
+            currentQuestion: 0,
+            score: 0,
+            selectedAnswer: null,
+            showResult: false,
+            gameFinished: false,
+            streak: 0,
+            bestStreak: 0
+        };
+
+        // Perguntas
+        const questions = [
+            {
+                question: "Qual processador é considerado intermediário para uso geral?",
+                options: ["Intel Core i3", "Intel Core i5", "Intel Core i9", "AMD Ryzen 3"],
+                correct: 1,
+                explanation: "O Intel Core i5 (ou AMD Ryzen 5) é ideal para uso intermediário: multitarefas, jogos leves e trabalho do dia a dia."
+            },
+            {
+                question: "Em um processador i5-11350G7, o que indica o número '11'?",
+                options: ["Família do processador", "Geração do processador", "Velocidade em GHz", "Número de núcleos"],
+                correct: 1,
+                explanation: "O número '11' indica a 11ª geração do processador Intel. Quanto maior, mais novo e eficiente."
+            },
+            {
+                question: "Qual é a principal diferença visual entre DDR3, DDR4 e DDR5?",
+                options: ["O tamanho da memória", "A posição do encaixe (notch)", "A cor do módulo", "O número de pinos"],
+                correct: 1,
+                explanation: "Cada geração de RAM tem o encaixe (notch) em posição diferente para evitar instalação errada!"
+            },
+            {
+                question: "O que significa 'Dual Channel' em memória RAM?",
+                options: [
+                    "Memória de 2GB",
+                    "Dois pentes de RAM trabalhando juntos",
+                    "Memória com 2 anos de garantia",
+                    "Velocidade de 2400MHz"
+                ],
+                correct: 1,
+                explanation: "Dual Channel significa usar 2 pentes de RAM idênticos, dobrando a velocidade de transferência de dados!"
+            },
+            {
+                question: "Quantos GB de RAM são recomendados para uso intermediário (multitarefas e jogos leves)?",
+                options: ["4 GB", "8 GB", "16 GB", "32 GB"],
+                correct: 2,
+                explanation: "16 GB é o ideal para uso intermediário: muitas abas abertas, jogos leves/médios e edição simples de fotos."
+            },
+            {
+                question: "Qual é a vantagem de uma placa de vídeo DEDICADA sobre a integrada?",
+                options: [
+                    "Economiza mais bateria",
+                    "Ocupa menos espaço",
+                    "Tem memória própria (VRAM) e mais performance",
+                    "É mais barata"
+                ],
+                correct: 2,
+                explanation: "A GPU dedicada tem memória própria (VRAM) e não consome a RAM do sistema, oferecendo muito mais performance!"
+            },
+            {
+                question: "Qual tipo de armazenamento é o MAIS RÁPIDO?",
+                options: ["HDD (Disco Rígido)", "SSD SATA 2.5\"", "SSD M.2 NVMe", "Pendrive USB 3.0"],
+                correct: 2,
+                explanation: "SSD M.2 NVMe pode atingir 3500+ MB/s, sendo até 70x mais rápido que um HDD tradicional!"
+            },
+            {
+                question: "Como diferenciar um M.2 SATA de um M.2 NVMe visualmente?",
+                options: [
+                    "Pela cor do módulo",
+                    "Pelo tamanho físico",
+                    "Pela quantidade de cortes (notches) no conector",
+                    "Pelo peso"
+                ],
+                correct: 2,
+                explanation: "M.2 SATA tem 2 cortes (chaves B+M), enquanto M.2 NVMe tem apenas 1 corte (chave M) à direita."
+            },
+            {
+                question: "O que significa 1 CICLO de bateria?",
+                options: [
+                    "Carregar a bateria uma vez",
+                    "Usar o notebook por 1 hora",
+                    "Descarga total acumulada de 100%",
+                    "Ligar e desligar o notebook"
+                ],
+                correct: 2,
+                explanation: "1 Ciclo = descarga acumulada de 100%. Ex: 50% hoje + 50% amanhã = 1 ciclo completo."
+            },
+            {
+                question: "Qual comando do Windows gera um relatório completo da bateria?",
+                options: [
+                    "battery /report",
+                    "powercfg /batteryreport",
+                    "cmd /battery",
+                    "systeminfo /bat"
+                ],
+                correct: 1,
+                explanation: "O comando 'powercfg /batteryreport' no CMD gera um relatório HTML completo sobre a saúde da bateria."
+            },
+            {
+                question: "Qual sufixo no processador Intel indica economia de energia (notebooks finos)?",
+                options: ["H (High Performance)", "K (Unlocked)", "U (Ultra Low Power)", "F (No Graphics)"],
+                correct: 2,
+                explanation: "O sufixo 'U' indica processadores de baixo consumo, ideais para notebooks finos e leves com boa autonomia."
+            },
+            {
+                question: "Para edição de vídeo 4K e renderização 3D, qual configuração de RAM é mais adequada?",
+                options: ["8 GB", "16 GB", "32 GB ou mais", "4 GB"],
+                correct: 2,
+                explanation: "Tarefas pesadas como edição 4K e renderização 3D exigem 32 GB ou mais para trabalhar com fluidez."
+            }
+        ];
+
+        // Funções de renderização
+        function renderQuestion() {
+            const q = questions[gameState.currentQuestion];
+            const { selectedAnswer, showResult } = gameState;
+            
+            const optionsHTML = q.options.map((option, index) => {
+                let classes = "w-full p-4 rounded-xl border-2 bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800 font-semibold text-left transition-all flex items-center justify-between";
+                let icon = '';
+                let disabled = '';
+
+                if (showResult) {
+                    disabled = 'disabled';
+                    if (index === q.correct) {
+                        classes = "w-full p-4 rounded-xl border-2 bg-green-100 border-green-500 text-green-800 font-semibold text-left flex items-center justify-between";
+                        icon = `<span class="text-green-600">${icons.check}</span>`;
+                    } else if (index === selectedAnswer) {
+                        classes = "w-full p-4 rounded-xl border-2 bg-red-100 border-red-500 text-red-800 font-semibold text-left flex items-center justify-between";
+                        icon = `<span class="text-red-600">${icons.x}</span>`;
+                    }
+                } else {
+                    classes += " cursor-pointer hover-scale";
+                }
+
+                return `
+                    <button 
+                        onclick="handleAnswer(${index})" 
+                        ${disabled}
+                        class="${classes} scale-in"
+                        style="animation-delay: ${index * 0.1}s"
+                    >
+                        <span>${option}</span>
+                        ${icon}
+                    </button>
+                `;
+            }).join('');
+
+            const explanationHTML = showResult ? `
+                <div class="mb-6 p-4 rounded-xl border-2 ${
+                    selectedAnswer === q.correct ? 'bg-green-50 border-green-500' : 'bg-blue-50 border-blue-500'
+                } fade-in">
+                    <div class="flex items-start gap-3">
+                        <span class="${selectedAnswer === q.correct ? 'text-green-600' : 'text-blue-600'} flex-shrink-0 mt-1">
+                            ${icons.star}
+                        </span>
+                        <div>
+                            <div class="font-bold mb-1 ${selectedAnswer === q.correct ? 'text-green-800' : 'text-blue-800'}">
+                                ${selectedAnswer === q.correct ? 'Correto! 🎉' : 'Não foi dessa vez!'}
+                            </div>
+                            <div class="text-gray-700">${q.explanation}</div>
+                        </div>
+                    </div>
+                </div>
+            ` : '';
+
+            const nextButtonHTML = showResult ? `
+                <button
+                    onclick="nextQuestion()"
+                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg fade-in"
+                >
+                    ${gameState.currentQuestion < questions.length - 1 ? 'Próxima Questão →' : 'Ver Resultado Final 🏆'}
+                </button>
+            ` : '';
+
+            const progress = ((gameState.currentQuestion + 1) / questions.length) * 100;
+
+            return `
+                <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-3xl w-full fade-in">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <span class="text-blue-600">${icons.award}</span>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Pontuação</div>
+                                <div class="text-2xl font-bold text-gray-800">${gameState.score}/${questions.length}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="bg-orange-100 p-3 rounded-full">
+                                <span class="text-orange-600">${icons.zap}</span>
+                            </div>
+                            <div>
+                                <div class="text-sm text-gray-500">Sequência</div>
+                                <div class="text-2xl font-bold text-orange-600">${gameState.streak} 🔥</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Questão ${gameState.currentQuestion + 1} de ${questions.length}</span>
+                            <span>${Math.round(progress)}%</span>
+                        </div>
+                        <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                                class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 rounded-full"
+                                style="width: ${progress}%"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- Question -->
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 leading-relaxed">
+                            ${q.question}
+                        </h2>
+
+                        <!-- Options -->
+                        <div class="space-y-3">
+                            ${optionsHTML}
+                        </div>
+                    </div>
+
+                    ${explanationHTML}
+                    ${nextButtonHTML}
+                </div>
+            `;
+        }
+
+        function renderFinished() {
+            const percentage = Math.round((gameState.score / questions.length) * 100);
+            let message, messageColor;
+
+            if (percentage === 100) {
+                message = "PERFEITO! Você dominou o conteúdo! 🏆";
+                messageColor = "text-yellow-600";
+            } else if (percentage >= 80) {
+                message = "Excelente! Você está pronta! 🌟";
+                messageColor = "text-green-600";
+            } else if (percentage >= 60) {
+                message = "Muito bem! Continue praticando! 💪";
+                messageColor = "text-blue-600";
+            } else {
+                message = "Revise o material e tente novamente! 📚";
+                messageColor = "text-orange-600";
+            }
+
+            return `
+                <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-2xl w-full transform hover:scale-105 transition-transform fade-in">
+                    <div class="text-center">
+                        <div class="text-yellow-500 mb-4 bounce-animate flex justify-center">
+                            ${icons.trophy}
+                        </div>
+                        <h2 class="text-4xl font-bold text-gray-800 mb-4">Quiz Finalizado!</h2>
+                        
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-6">
+                            <div class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+                                ${gameState.score}/${questions.length}
+                            </div>
+                            <div class="text-2xl font-bold text-gray-700">${percentage}% de acertos</div>
+                        </div>
+
+                        <div class="text-2xl font-bold mb-6 ${messageColor}">
+                            ${message}
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-orange-50 rounded-xl p-4 border-2 border-orange-200">
+                                <div class="w-8 h-8 mx-auto text-orange-500 mb-2 flex justify-center">
+                                    ${icons.zap}
+                                </div>
+                                <div class="text-sm text-gray-600">Melhor Sequência</div>
+                                <div class="text-3xl font-bold text-orange-600">${gameState.bestStreak}</div>
+                            </div>
+                            <div class="bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                                <div class="w-8 h-8 mx-auto text-green-500 mb-2 flex justify-center">
+                                    ${icons.target}
+                                </div>
+                                <div class="text-sm text-gray-600">Precisão</div>
+                                <div class="text-3xl font-bold text-green-600">${percentage}%</div>
+                            </div>
+                        </div>
+
+                        <button
+                            onclick="restartGame()"
+                            class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg flex items-center gap-2 mx-auto"
+                        >
+                            <span>${icons.rotate}</span>
+                            Jogar Novamente
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+            if (gameState.gameFinished) {
+                app.innerHTML = renderFinished();
+            } else {
+                app.innerHTML = renderQuestion();
+            }
+        }
+
+        // Funções de controle
+        function handleAnswer(index) {
+            if (gameState.selectedAnswer !== null) return;
+            
+            gameState.selectedAnswer = index;
+            gameState.showResult = true;
+            
+            const q = questions[gameState.currentQuestion];
+            if (index === q.correct) {
+                gameState.score++;
+                gameState.streak++;
+                if (gameState.streak > gameState.bestStreak) {
+                    gameState.bestStreak = gameState.streak;
+                }
+            } else {
+                gameState.streak = 0;
+            }
+            
+            render();
+        }
+
+        function nextQuestion() {
+            if (gameState.currentQuestion < questions.length - 1) {
+                gameState.currentQuestion++;
+                gameState.selectedAnswer = null;
+                gameState.showResult = false;
+            } else {
+                gameState.gameFinished = true;
+            }
+            render();
+        }
+
+        function restartGame() {
+            gameState = {
+                currentQuestion: 0,
+                score: 0,
+                selectedAnswer: null,
+                showResult: false,
+                gameFinished: false,
+                streak: 0,
+                bestStreak: 0
+            };
+            render();
+        }
+
+        // Inicializar
+        render();
+    </script>
+</body>
+</html>
